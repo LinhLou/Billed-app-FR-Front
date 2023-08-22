@@ -9,6 +9,7 @@
     ],
     "collectCoverageFrom": [
       "**/*.{js,jsx}",
+      "!**/constants/**",
       "!**/app/**",
       "!**/assets/**",
       "!**/external/**",
