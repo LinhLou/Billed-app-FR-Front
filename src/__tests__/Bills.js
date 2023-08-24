@@ -41,6 +41,8 @@ describe("Given I am connected as an employee", () => {
   })
 
   describe("When I am on Bills Page, there are bills", ()=>{
+    test("Then, it should show table of bills",()=>{
+    })
     test("Then bills should be ordered from earliest to latest", () => {
       document.body.innerHTML = BillsUI({ data: bills })
       const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
@@ -49,6 +51,7 @@ describe("Given I am connected as an employee", () => {
       expect(dates).toEqual(datesSorted)
     })
   })
+
 
   // fonctionalités
 
