@@ -1,0 +1,1 @@
+import mockStore from "../__mocks__/store.js"

@@ -1,6 +1,8 @@
 import { ROUTES_PATH } from '../constants/routes.js'
 import { formatDate, formatStatus } from "../app/format.js"
 import Logout from "./Logout.js"
+import mockStore from "../__mocks__/store.js"
+
 
 export default class {
   constructor({ document, onNavigate, store, localStorage }) {
@@ -33,6 +35,7 @@ export default class {
       .bills()
       .list()
       .then(snapshot => {
+        snapshot.sort((a,b)=>new Date(b.date)-new Date(a.date))
         const bills = snapshot
           .map(doc => {
             try {
