@@ -40,7 +40,7 @@
 }
 
 .active-icon {
-  background-color: #7bb1f7;
+  background-color:#FFFF00; /* #7bb1f7;*/
   width: 40px;
   height: 40px;
   display: flex;
