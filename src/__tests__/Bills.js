@@ -3,13 +3,12 @@
  */
 
 import {fireEvent, screen, waitFor} from "@testing-library/dom"
-import userEvent from '@testing-library/user-event'
 import BillsUI from "../views/BillsUI.js"
 import { bills } from "../fixtures/bills.js"
 import mockStore from "../__mocks__/store.js"
 import { ROUTES, ROUTES_PATH } from "../constants/routes.js"
 import {localStorageMock} from "../__mocks__/localStorage.js";
-import { formatDate } from "../app/format.js"
+import { formatDate, formatStatus } from "../app/format.js"
 import Bills from "../containers/Bills.js"
 
 import router from "../app/Router.js";
@@ -51,21 +50,52 @@ describe("Given I am connected as an employee", () => {
   })
 
   describe("When I am on Bills page, there are bills", ()=>{
-    test("Then it should show the button new bill", ()=>{
+    test("Then it should show the button new bill and the bill table", ()=>{
       document.body.innerHTML = BillsUI({data:bills})
       expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
+      expect(screen.getByTestId("tbody")).toBeTruthy()
+      const typeFistBill = screen.getByText('Hôtel et logement') 
+      const typeSecondBill = screen.getByText('Transports')
+      const typeThirstBill = screen.getByText('Services en ligne')
+      const typeFourthBill = screen.getByText('Restaurants et bars')
+      const dateFistBill = screen.getByText('2004-04-04') 
+      const dateSecondBill = screen.getByText('2001-01-01')
+      const dateThirstBill = screen.getByText('2003-03-03')
+      const dateFourthBill = screen.getByText('2002-02-02')
+      const nameFistBill = screen.getByText('encore') 
+      const nameSecondBill = screen.getByText('test1')
+      const nameThirstBill = screen.getByText('test3')
+      const nameFourthBill = screen.getByText('test2')
+      const moneyFistBill = screen.getByText('400 €') 
+      const moneySecondBill = screen.getByText('100 €')
+      const moneyThirstBill = screen.getByText('300 €')
+      const moneyFourthBill = screen.getByText('200 €')
+      const pendingBill = screen.getAllByText('pending')
+      const acceptedBill = screen.getAllByText('accepted')
+      const refusedBill = screen.getAllByText('refused')
+      const icon_eyes = screen.getAllByTitle('icon-eye')
+      expect(icon_eyes.length).toBe(4)
+      expect(pendingBill.length).toBe(1)
+      expect(acceptedBill.length).toBe(1)
+      expect(refusedBill.length).toBe(2)
+      expect(typeFistBill).toBeTruthy()
+      expect(typeSecondBill).toBeTruthy()
+      expect(typeThirstBill).toBeTruthy()
+      expect(typeFourthBill).toBeTruthy()
+      expect(nameFistBill).toBeTruthy()
+      expect(nameSecondBill).toBeTruthy()
+      expect(nameThirstBill).toBeTruthy()
+      expect(nameFourthBill).toBeTruthy()
+      expect(moneyFistBill).toBeTruthy()
+      expect(moneySecondBill).toBeTruthy()
+      expect(moneyThirstBill).toBeTruthy()
+      expect(moneyFourthBill).toBeTruthy()
+      expect(dateFistBill).toBeTruthy()
+      expect(dateSecondBill).toBeTruthy()
+      expect(dateThirstBill).toBeTruthy()
+      expect(dateFourthBill).toBeTruthy()
     })
 
-    test("Then it should show the bills table", ()=>{
-      document.body.innerHTML = BillsUI({data:[bills[0]]})
-      expect(screen.getByTestId("tbody")).toBeTruthy()
-      expect(screen.getAllByText(bills[0].type)).toBeTruthy()
-      expect(screen.getAllByText(bills[0].name)).toBeTruthy()
-      expect(screen.getAllByText(bills[0].date)[0].innerHTML).toBe('2004-04-04')
-      expect(screen.getAllByText(`${bills[0].amount} €`)).toBeTruthy()
-      expect(screen.getAllByText(bills[0].status)).toBeTruthy()
-      expect(screen.getByTestId("icon-eye")).toBeTruthy()
-    })
 
     test("Then bills should be ordered from earliest to latest", async () => {
       const billsMock = await mockStore.bills().list();
@@ -122,9 +152,12 @@ describe("Given I am connected as an employee", () => {
     test("Then, modal should be open", async () => {
       document.body.innerHTML =''
       const onNavigate = (path_name) =>{
-        document.body.innerHTML = ROUTES({pathname})
+        document.body.innerHTML = ROUTES({path_name})
       }
       Object.defineProperty(window,'localStorage',{ value: localStorageMock})
+      window.localStorage.setItem('user',JSON.stringify({
+        type: 'Employee'
+      }))
       
       const bill = new Bills({document,onNavigate,store:null,localStorage:window.localStorage})
       document.body.innerHTML = BillsUI({data:bills})
@@ -142,8 +175,83 @@ describe("Given I am connected as an employee", () => {
 
 })
 
-// test d'intégration 
-// describe("Given I am a user connected as employee", ()=>{
-//   describe("When I navigate to Bills page", ()=>{
-//   })
-// })
+// test d'intégration GET
+describe("Given I am a user connected as employee", ()=>{
+  describe("When I navigate to Bills page and there is any error", ()=>{
+    test("Then fetchs bills from mock API GET", async ()=>{
+      document.body.innerHTML=''
+      Object.defineProperty(window, 'localStorage', {value:localStorageMock})
+      window.localStorage.setItem('user',JSON.stringify({
+        type: 'Employee'
+      }))
+      const root = document.createElement("div")
+      root.setAttribute('id','root')
+      document.body.append(root)
+      router()
+      window.onNavigate(ROUTES_PATH.Bills)
+      await waitFor(()=>screen.getAllByText('Mes notes de frais'))
+      expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
+      expect(screen.getByTestId("tbody")).toBeTruthy()
+      const typeFistBill = screen.getByText('Hôtel et logement') 
+      const typeSecondBill = screen.getByText('Transports')
+      const typeThirstBill = screen.getByText('Services en ligne')
+      const typeFourthBill = screen.getByText('Restaurants et bars')
+      const dateFistBill = screen.getByText(formatDate('2004-04-04')) 
+      const dateSecondBill = screen.getByText(formatDate('2001-01-01'))
+      const dateThirstBill = screen.getByText(formatDate('2003-03-03'))
+      const dateFourthBill = screen.getByText(formatDate('2002-02-02'))
+      const nameFistBill = screen.getByText('encore') 
+      const nameSecondBill = screen.getByText('test1')
+      const nameThirstBill = screen.getByText('test3')
+      const nameFourthBill = screen.getByText('test2')
+      const moneyFistBill = screen.getByText('400 €') 
+      const moneySecondBill = screen.getByText('100 €')
+      const moneyThirstBill = screen.getByText('300 €')
+      const moneyFourthBill = screen.getByText('200 €')
+      const pendingBill = screen.getAllByText(formatStatus('pending'))
+      const acceptedBill = screen.getAllByText(formatStatus('accepted'))
+      const refusedBill = screen.getAllByText(formatStatus('refused'))
+      const icon_eyes = screen.getAllByTitle('icon-eye')
+      expect(icon_eyes.length).toBe(4)
+      expect(pendingBill.length).toBe(1)
+      expect(acceptedBill.length).toBe(1)
+      expect(refusedBill.length).toBe(2)
+      expect(typeFistBill).toBeTruthy()
+      expect(typeSecondBill).toBeTruthy()
+      expect(typeThirstBill).toBeTruthy()
+      expect(typeFourthBill).toBeTruthy()
+      expect(nameFistBill).toBeTruthy()
+      expect(nameSecondBill).toBeTruthy()
+      expect(nameThirstBill).toBeTruthy()
+      expect(nameFourthBill).toBeTruthy()
+      expect(moneyFistBill).toBeTruthy()
+      expect(moneySecondBill).toBeTruthy()
+      expect(moneyThirstBill).toBeTruthy()
+      expect(moneyFourthBill).toBeTruthy()
+      expect(dateFistBill).toBeTruthy()
+      expect(dateSecondBill).toBeTruthy()
+      expect(dateThirstBill).toBeTruthy()
+      expect(dateFourthBill).toBeTruthy()
+
+    })
+  })
+
+  describe("When I navigate to Bills page and an error occurs on API", ()=>{
+    beforeEach(()=>{
+      document.body.innerHTML=''
+      jest.spyOn(mockStore,'bills')
+      Object.defineProperty(window, 'localStorage', {value:localStorageMock})
+      window.localStorage.setItem('user',JSON.stringify({
+        type: 'Employee'
+      }))
+      const root = document.createElement("div")
+      root.setAttribute('id','root')
+      document.body.append(root)
+      router()
+    })
+    // test('Then fetches bills from an API and fails with 404 message error', async()=>{
+    // })
+    // test('Then fetches bills from an API and fails with 500 message error', async()=>{
+    // })
+  })
+})
