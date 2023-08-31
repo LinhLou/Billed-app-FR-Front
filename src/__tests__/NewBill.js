@@ -8,6 +8,7 @@ import { ROUTES } from "../constants/routes.js"
 import mockStore from "../__mocks__/store.js"
 import NewBill from "../containers/NewBill.js"
 import { localStorageMock } from "../__mocks__/localStorage.js"
+import { bills } from "../fixtures/bills.js"
 
 
 describe("Given I am connected as an employee", () => {
@@ -42,7 +43,7 @@ describe("Given I am connected as an employee", () => {
       document.body.innerHTML=''
       Object.defineProperty(window,'localStorage', {value: localStorageMock})
       window.localStorage.setItem('user',JSON.stringify({
-        type: 'Employee',
+        type: "Employee",
         email: "employee@test.tld"
       }))
       const onNavigate = (path_name)=>{
@@ -70,4 +71,54 @@ describe("Given I am connected as an employee", () => {
       expect(fileNode.files.length).toBe(0)
     })
   })
+
+})
+
+
+describe("Given I am connected as an employee, and I am on NewBill page",()=>{
+  describe('When I click to submit button',()=>{
+    test('Then the Bills page is renderd', async ()=>{
+      Object.defineProperty(window, 'localStorage', {value:localStorageMock})
+      window.localStorage.setItem('user',JSON.stringify({
+        type: "Employee",
+        email: "employee@test.tld"
+      }))
+  
+      const onNavigate = (path_name)=>{
+        document.body.innerHTML = ROUTES({ path_name, bills})
+      }
+  
+      document.body.innerHTML = NewBillUI()
+
+      const newBill = new NewBill({document, onNavigate, store:mockStore, localStorage: window.localStorage})
+      const fileNode = screen.getByTestId('file')
+      fireEvent.change(fileNode,{
+        target: {
+          files: [new File(['testData'], 'test.jpg', {type: 'image/jpg'})],
+        }
+      })
+      const expense_name = screen.getByTestId('expense-name')
+      const commentary = screen.getByTestId('commentary')
+      const amount = screen.getByTestId('amount')
+      const vat = screen.getByTestId('vat')
+      const pct = screen.getByTestId('pct')
+      const date = screen.getByTestId('datepicker')
+      const expense_type = screen.getByTestId('expense-type')
+      fireEvent.change(expense_name,{target:{value:'helo'}})
+      fireEvent.change(commentary,{target:{value:'helllo'}})
+      fireEvent.change(amount,{target:{value:200}})
+      fireEvent.change(vat,{target:{value:20}})
+      fireEvent.change(pct,{target:{value:10}})
+      fireEvent.change(date,{target:{value:'2020-05-12'}})
+      fireEvent.change(expense_type,{target:{value:'Transports'}})
+
+      const btnSubmit =  screen.getByTestId('btn-send-bill')
+      const handleSubmit = jest.fn(()=>newBill.handleSubmit)
+      btnSubmit.addEventListener('click',handleSubmit)
+      fireEvent.click(btnSubmit)
+      expect(handleSubmit).toHaveBeenCalled()
+
+    })
+  })
+
 })
