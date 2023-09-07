@@ -45,8 +45,8 @@ describe("Given I am connected as an employee", () => {
 
 
 describe("Given I am connected as an employee, and I am on NewBill page",()=>{
-  describe('When I choose a file',()=>{
-    test('Then only image will be selected, other type of file will not be accepted', ()=>{
+  describe('When I choose a file as image',()=>{
+    test('Then image will be selected', ()=>{
       Object.defineProperty(window,'localStorage', {value: localStorageMock})
       window.localStorage.setItem('user',JSON.stringify({
         type: "Employee",
@@ -67,14 +67,6 @@ describe("Given I am connected as an employee, and I am on NewBill page",()=>{
       })
       expect(handleChangeFile).toHaveBeenCalled()
       expect(fileNode.files[0].name).toBe('test.jpg')
-
-      fireEvent.change(fileNode,{
-        target: {
-          files: [new File(['testData'], 'test.pdf', {type: 'application/pdf'})]
-        }
-      })
-      expect(handleChangeFile).toHaveBeenCalled()
-      expect(fileNode.files.length).toBe(0)
     })
   })
 

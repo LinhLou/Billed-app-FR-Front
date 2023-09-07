@@ -42,7 +42,6 @@ export default class NewBill {
         }).catch(error => console.error(error))
     }else{
       e.target.value =''
-      e.target.files =[]
     }
   }
   handleSubmit = e => {
