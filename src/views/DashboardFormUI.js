@@ -1,8 +1,8 @@
-import calendarIcon from '../assets/svg/calendar.js'
-import euroIcon from '../assets/svg/euro.js'
-import pctIcon from '../assets/svg/pct.js'
-import eyeWhite from '../assets/svg/eye_white.js'
-import { formatDate } from '../app/format.js'
+import calendarIcon from '../assets/svg/calendar.js';
+import euroIcon from '../assets/svg/euro.js';
+import pctIcon from '../assets/svg/pct.js';
+import eyeWhite from '../assets/svg/eye_white.js';
+import { formatDate } from '../app/format.js';
 
 export const modal = () => (`
   <div class="modal fade" id="modaleFileAdmin1" data-testid="modaleFileAdmin" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -19,7 +19,7 @@ export const modal = () => (`
       </div>
     </div>
   </div>
-  `)
+  `);
 
 export default (bill) => {
 
@@ -98,5 +98,5 @@ export default (bill) => {
     </div>
     ${modal()}
     </div>
-  `)
-}
+  `);
+};
