@@ -15,6 +15,9 @@ jest.mock("../app/store", () => mockStore);
 
 describe("Given I am connected as an employee", () => {
   describe("When I am on NewBill Page", () => {
+    afterEach(() => {
+      document.body.html = '';
+    });
     test("Then the formular is shown", () => {
       const html = NewBillUI();
       document.body.innerHTML = html;
@@ -45,8 +48,68 @@ describe("Given I am connected as an employee", () => {
 
 
 describe("Given I am connected as an employee, and I am on NewBill page", () => {
-  describe('When I choose a file as image', () => {
-    test('Then image will be selected', () => {
+  describe('When I choose a file that is image with extension jpg, jpeg or png', () => {
+    beforeEach(() => {
+      document.body.html = '';
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    test('Then the file name is logged', async () => {
+      const logSpy = jest.spyOn(global.console, 'log');
+      Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+      window.localStorage.setItem('user', JSON.stringify({
+        type: "Employee",
+        email: "employee@test.tld"
+      }));
+      const onNavigate = (pathname) => {
+        document.body.innerHTML = ROUTES({ pathname });
+      };
+      document.body.innerHTML = NewBillUI();
+      const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
+      const handleChangeFile = jest.fn(() => newBill.handleChangeFile);
+      const fileNode = screen.getByTestId('file');
+      fileNode.addEventListener('change', handleChangeFile);
+      // change to file .jpg
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
+        }
+      });
+      expect(handleChangeFile).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith('test.jpg');
+      // change to file .jpeg
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.jpeg', { type: 'image/jpeg' })],
+        }
+      });
+      expect(handleChangeFile).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith('test.jpeg');
+      // change to file .png
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.png', { type: 'image/png' })],
+        }
+      });
+      expect(handleChangeFile).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith('test.png');
+    });
+  });
+
+  describe('When I choose a file that is a pdf file', () => {
+    beforeEach(() => {
+      document.body.html = '';
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+
+    test('Then "Aucun fichier choisi" is logged', () => {
+      const logSpy = jest.spyOn(global.console, 'log');
       Object.defineProperty(window, 'localStorage', { value: localStorageMock });
       window.localStorage.setItem('user', JSON.stringify({
         type: "Employee",
@@ -62,11 +125,13 @@ describe("Given I am connected as an employee, and I am on NewBill page", () => 
       fileNode.addEventListener('change', handleChangeFile);
       fireEvent.change(fileNode, {
         target: {
-          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
+          files: [new File(['testData'], 'test.pdf', { type: 'application/pdf' })],
         }
       });
+
       expect(handleChangeFile).toHaveBeenCalled();
-      expect(fileNode.files[0].name).toBe('test.jpg');
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledWith('Aucun fichier choisi');
     });
   });
 
@@ -86,28 +151,6 @@ describe("Given I am connected as an employee, and I am on NewBill page", () => 
       document.body.innerHTML = NewBillUI();
 
       const newBill = new NewBill({ document, onNavigate, store: mockStore, localStorage: window.localStorage });
-
-      const fileNode = screen.getByTestId('file');
-      fireEvent.change(fileNode, {
-        target: {
-          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
-        }
-      });
-      const expense_name = screen.getByTestId('expense-name');
-      const commentary = screen.getByTestId('commentary');
-      const amount = screen.getByTestId('amount');
-      const vat = screen.getByTestId('vat');
-      const pct = screen.getByTestId('pct');
-      const date = screen.getByTestId('datepicker');
-      const expense_type = screen.getByTestId('expense-type');
-      fireEvent.change(expense_name, { target: { value: 'test' } });
-      fireEvent.change(commentary, { target: { value: 'just for test' } });
-      fireEvent.change(amount, { target: { value: 200 } });
-      fireEvent.change(vat, { target: { value: 20 } });
-      fireEvent.change(pct, { target: { value: 10 } });
-      fireEvent.change(date, { target: { value: '2020-05-12' } });
-      fireEvent.change(expense_type, { target: { value: 'Transports' } });
-
       const form = screen.getByTestId('form-new-bill');
       const handleSubmit = jest.fn(() => newBill.handleSubmit);
       form.addEventListener('submit', handleSubmit);
@@ -124,78 +167,99 @@ describe("Given I am connected as an employee, and I am on NewBill page", () => 
 // Test d'intégration POST
 
 describe("Given I am a user connected as Employee", () => {
-  describe("When I am on NewBill page and I submit bill form", () => {
-    test("Then the Bills page is rendered", async () => {
-      document.body.html = '';
+  describe("When I am on NewBill page and I submit the bill form", () => {
+    beforeEach(() => {
+      document.body.innerHTML = '';
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    test("Then the URL of the file is logged", async () => {
+      const logSpy = jest.spyOn(global.console, 'log');
       Object.defineProperty(window, 'localStorage', { value: localStorageMock });
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee',
         email: 'a@a'
       }));
+
       const root = document.createElement('div');
       root.setAttribute('id', 'root');
       document.body.append(root);
       router();
       window.onNavigate(ROUTES_PATH.NewBill);
-      const updateSpy = jest.spyOn(mockStore, 'bills').mockImplementationOnce(() => {
-        return {
-          update: () => {
-            return Promise.resolve({
-              "id": "47qAXb6fIm2zOKkLzMro",
-              "vat": "80",
-              "fileUrl": "https://firebasestorage.googleapis.com/v0/b/billable-677b6.a…f-1.jpg?alt=media&token=c1640e12-a24b-4b11-ae52-529112e9602a",
-              "status": "pending",
-              "type": "Hôtel et logement",
-              "commentary": "séminaire billed",
-              "name": "encore",
-              "fileName": "preview-facture-free-201801-pdf-1.jpg",
-              "date": "2004-04-04",
-              "amount": 400,
-              "commentAdmin": "ok",
-              "email": "a@a",
-              "pct": 20
-            });
-          }
-        };
+      const fileNode = screen.getByTestId('file');
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
+        }
       });
-
-      const form = screen.getByTestId('form-new-bill');
-      fireEvent.submit(form);
-      expect(updateSpy).toHaveBeenCalled();
-      expect(updateSpy).toHaveBeenCalledTimes(1);
-      const billsPage = screen.getAllByText('Mes notes de frais');
-      expect(billsPage).toBeTruthy();
-
+      await new Promise(process.nextTick);
+      expect(logSpy).toHaveBeenCalled();
+      expect(logSpy).toHaveBeenCalledTimes(2);
+      expect(logSpy).toHaveBeenCalledWith('https://localhost:3456/images/test.jpg');
     });
   });
+
   describe("When I submit bill form and an error occurs on API", () => {
-    test("Then I remain on newBill page", async () => {
-      document.body.html = '';
+    beforeEach(() => {
+      document.body.innerHTML = '';
+      jest.spyOn(mockStore, 'bills');
       Object.defineProperty(window, 'localStorage', { value: localStorageMock });
       window.localStorage.setItem('user', JSON.stringify({
         type: 'Employee',
-        email: 'a@a'
+        email: "a@a"
       }));
-      const root = document.createElement('div');
+      const root = document.createElement("div");
       root.setAttribute('id', 'root');
       document.body.append(root);
       router();
-      window.onNavigate(ROUTES_PATH.NewBill);
-
-      const updateSpy = jest.spyOn(mockStore, 'bills').mockImplementationOnce(() => {
+    });
+    afterEach(() => {
+      jest.clearAllMocks();
+    });
+    test("Then log the 404 message error", async () => {
+      const errorSpy = jest.spyOn(global.console, 'error');
+      mockStore.bills.mockImplementationOnce(() => {
         return {
-          update: () => {
-            return Promise.reject(new Error('Erreur 404'));
+          create: () => {
+            return Promise.reject(new Error("Erreur 404"));
           }
         };
       });
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const fileNode = screen.getByTestId('file');
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
+        }
+      });
 
-      const form = screen.getByTestId('form-new-bill');
-      fireEvent.submit(form);
-      expect(updateSpy).toHaveBeenCalled();
-      const billsPage = screen.getAllByText('Envoyer une note de frais');
-      expect(billsPage).toBeTruthy();
+      await new Promise(process.nextTick);
+      expect(errorSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(new Error("Erreur 404"));
+    });
+    test("Then log the 500 message error", async () => {
+      const errorSpy = jest.spyOn(global.console, 'error');
+      mockStore.bills.mockImplementationOnce(() => {
+        return {
+          create: () => {
+            return Promise.reject(new Error("Erreur 500"));
+          }
+        };
+      });
+      window.onNavigate(ROUTES_PATH.NewBill);
+      const fileNode = screen.getByTestId('file');
+      fireEvent.change(fileNode, {
+        target: {
+          files: [new File(['testData'], 'test.jpg', { type: 'image/jpg' })],
+        }
+      });
 
+      await new Promise(process.nextTick);
+      expect(errorSpy).toHaveBeenCalled();
+      expect(errorSpy).toHaveBeenCalledTimes(1);
+      expect(errorSpy).toHaveBeenCalledWith(new Error("Erreur 500"));
     });
   });
 });
